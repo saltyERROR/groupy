@@ -1,5 +1,5 @@
 import interpreter.Interpreter;
-import groupy.EAM;
+import io.EAM;
 import lexer.Lexer;
 import lexer.Token;
 import parser.Parser;
