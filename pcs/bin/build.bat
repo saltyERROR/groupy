@@ -1,10 +1,14 @@
 :del all files except src
 
+rem FileExtension
 assoc .g=txtfile
-cd ..\lib\src
-javac io\*.java -d ..\
-cd ..\..\pcs\src
-javac Processor.java -d ..\
-cd ..\..\rtm\src
-javac Runner.java -d ..\
-cd ..\..\bin
+
+rem Processor
+cd ..\..\pcs\sys\src
+javac *.java -d ..\bin
+
+rem Runtime
+cd ..\..\..\rtm\sys\src
+javac *.java -d ..\bin
+
+cd ..\..\..\pcs\bin
