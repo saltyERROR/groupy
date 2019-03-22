@@ -1,29 +1,36 @@
-﻿# groupy
-### summary
-simple and readable language for programming
-still under design stage
+﻿# groupy  
+### summary  
+simple and friendly language for programming.  
+still under design stage.  
 
-### requirement
-jdk and groupy  
-jdk can be available : https://download.java.net/java/GA/jdk11/13/GPL/openjdk-11.0.1_windows-x64_bin.zip
+### policy
+1. simple  
+groupy express essence of coding.  
+2. friendly  
+you can use some modes for your purpose.  
 
-### contents
-pcs : processor of groupy  
-rtm : runtime system of groupy  
-bin : binary files  
-res : resources  
+### requirement  
+jdk  
+jdk can be available on this site : https://www.java.com/ja/.  
 
-### usage
-1. download groupy.
+### contents  
+compiler     (in package, "compiler")  
+runtime      (in package, "runtime")  
+library      (in package, "library")  
+.batch files (in directory, "binary")  
+.xml files   (in directory, "resource")  
+
+### usage  
+1. download groupy.  
 2. write sourses in groupy and save it in "pcs\lib\[work-space]" as .txt file.  
-   [work-space] : the name of your work-space directory
-3. call "bin¥groupy.bat".
+   [work-space] : the name of your work-space directory  
+3. call "bin¥groupy.bat".  
 
-### grammar
+### grammar  
 declare and initialize variables  
 :: v = 2  
 declare functions  
 :: f v -> v+3  
 or  
-:: f v -> ${5*,disp} v
-$ means composite functions
+:: f v -> ${5*,disp} v  
+"$" means composite functions  
