@@ -1,0 +1,6 @@
+left_bracket  : "("
+print         : "print"
+hello_world   : "\"hello world\""
+right_bracket : ")"
+layer         : left_bracket print hello_world right_bracket
+input         : layer
