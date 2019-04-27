@@ -1,11 +1,13 @@
 package server;
 
+import s_expression_compiler.LexicalUnit;
 import s_expression_compiler.ParserStatus;
 import system.Error;
 import system.LanguageServerProtocol;
 import system.Parser;
 
 public class ServerProtocol implements LanguageServerProtocol {
+    public void handle(final ParserStatus status){}
     // alert error
     // highlight
     // rename

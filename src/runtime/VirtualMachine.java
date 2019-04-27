@@ -18,11 +18,6 @@ import system.LanguageApp;
 import java.util.*;
 
 public class VirtualMachine implements LanguageApp {
-    private int[] stack_area;//static todo implement stack_area
-    private int[] heap_area;//dynamic
-    private GarbageCollector garbage_collector; //todo implement GC
-    private Thread main_thread;
-    private MultiThreadManager thread_manager;// todo implement multi thread manager
     public VirtualMachine(final int threads_number){
         this.stack_area = new int[256];
         this.heap_area = new int[256];
@@ -30,6 +25,12 @@ public class VirtualMachine implements LanguageApp {
         this.main_thread = new Thread(heap_area,garbage_collector);
         if (threads_number > 0) this.thread_manager = new MultiThreadManager(threads_number);
     }
+    private int[] stack_area;//static todo implement stack_area
+    private int[] heap_area;//dynamic
+    private GarbageCollector garbage_collector; //todo implement GC
+    private Thread main_thread;
+    private MultiThreadManager thread_manager;// todo implement multi thread manager
+
     public static int[] split(String input){
         // replace space
         input = input.replaceAll("[\\s]","");

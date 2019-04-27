@@ -1,15 +1,13 @@
 package system;
 
-import io.Eam;
-import io.Reader;
-import io.Writer;
+import io.*;
 import runtime.VirtualMachine;
 
 import java.io.IOException;
 
 public class Main{
     public static void main(String[] args) throws IOException{
-        String file_name = "HelloWorld";
+        String file_name = "Variable";
         compiler(file_name);
         runtime(file_name);
     }

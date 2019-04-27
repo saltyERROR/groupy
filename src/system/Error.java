@@ -7,8 +7,8 @@ public enum Error {
     VM,
     NOT_FOUND,
     UNKNOWN;
-    public static void exit(final Error e,final String t){
-        System.err.println("error : " + e + "\n" + t);
+    public static void exit(final Error type,final String detail){
+        System.err.println("error : " + type + "\n" + detail);
         System.exit(1);
     }
 }

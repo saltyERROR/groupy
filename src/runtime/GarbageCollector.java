@@ -1,13 +1,13 @@
 package runtime;
 
 public class GarbageCollector {
-    private int[] heap_area;
     GarbageCollector(final int[] heap_area){
         // share with VirtualMachine
         this.heap_area = heap_area;
     }
+    private int[] heap_area;
     void collecting(){
-        System.out.println("collecting");
+        // System.out.println("collecting");
     }
     void collect(){
         int using_memory_size = 0;

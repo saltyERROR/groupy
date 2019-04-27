@@ -1,1 +1,1 @@
-( print_char 104 )
+(print "hello world!");

@@ -6,7 +6,8 @@ public enum ParserStatus {
     handling_error,
     reducing,
     shifting,
-    waiting_input;
+    waiting_input,
+    nil;
     // increment/decrement parser.status
     public void increment(){}
     public void decrement(){}
