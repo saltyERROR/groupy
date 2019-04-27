@@ -1,0 +1,1 @@
+(let $a 100)(let $b a)(print "a=")(print a)(print " b=")(print b);
