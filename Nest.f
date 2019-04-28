@@ -1,0 +1,1 @@
+(let (min(+ 1 (* 2 3)) 5) "a")(print (call "a"));

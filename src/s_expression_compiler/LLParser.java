@@ -18,17 +18,20 @@ import static java.lang.Integer.*;
 
 public class LLParser implements Parser {
     public LLParser() {
-        this.variables = new HashMap<>();
+        this.variable_map = new HashMap<>();
         this.required = new ArrayList<>();
-        this.required.add(Token.LEFT_BRACKET);
+        this.required.add(Token.LEFT_PARENTHESIS);
         this.required.add(Token.END);
         this.server = new ServerProtocol();
+        this.function_stack = new Stack<>();
         this.status = ParserStatus.nil;
     }
-    private Map<String,Integer> variables;
-    private List<Token> required;
+    private final Map<String,Integer> variable_map;
+    private final List<Token> required;
     private final ServerProtocol server;
+    private final Stack<LexicalUnit> function_stack;
     private ParserStatus status;
+
     // lexical analyzer
     private LexicalUnit analyze(final String s){
         boolean matches;
@@ -61,125 +64,66 @@ public class LLParser implements Parser {
         return parse(Arrays.copyOfRange(analyzed, 0, i));
     }
     private String parse(final LexicalUnit[] analyzed){
-        String result = "";
-        int locals = 0;
-        int starting_address;
-        for (int j = 0; j < analyzed.length; j++){
+        final StringBuilder builder = new StringBuilder();
+        int variables = 0;
+        for (LexicalUnit unit : analyzed) {
             status = ParserStatus.waiting_input;
-            LexicalUnit unit = analyzed[j];
             if (required.contains(unit.token)) {
-                switch (unit.token){
-                    case LEFT_BRACKET:
-                        require(new Token[]{Token.FUNCTION});
+                switch (unit.token) {
+                    case LEFT_PARENTHESIS:
+                        require(new Token[]{Token.ADD,Token.MULTIPLY,Token.FUNCTION});
                         break;
+                    case ADD:
+                    case MULTIPLY:
                     case FUNCTION:
-                        Queue<LexicalUnit> q = arguments(Arrays.copyOfRange(analyzed,j + 1,analyzed.length));
-                        switch (unit.value){
+                        function_stack.push(unit);
+                        require(new Token[]{Token.NUMBER,Token.LITERAL,Token.LEFT_PARENTHESIS,Token.RIGHT_PARENTHESIS});
+                        break;
+                    case NUMBER:
+                        builder.append(normalize(toHexString(parseInt(unit.value)),6))
+                               .append("10\n");
+                        require(new Token[]{Token.NUMBER,Token.LITERAL,Token.LEFT_PARENTHESIS,Token.RIGHT_PARENTHESIS});
+                        break;
+                    case LITERAL:
+                        if (variable_map.containsKey(unit.value)) {
+                            builder.append(normalize(toHexString(variable_map.get(unit.value)),6))
+                                    .append("10\n");
+                        } else {
+                            variable_map.put(unit.value,variable_map.size());
+                            builder.append(normalize(toHexString(variables++), 6))
+                                    .append("10\n");
+                        }
+                        break;
+                    case RIGHT_PARENTHESIS:
+                        switch (function_stack.pop().value) {
+                            case "+":
+                                builder.append("00000011\n");
+                                break;
+                            case "*":
+                                builder.append("00000012\n");
+                                break;
                             case "print":
-                                if (q.size() == 1){
-                                    LexicalUnit peek = q.poll();
-                                    switch (peek.token){
-                                        case LITERAL:
-                                            String printed = peek.value.substring(1, peek.value.length() - 1);
-                                            // set address TODO remove
-                                            starting_address = locals;
-                                            result += normalize(toHexString(starting_address),6) + "03\n";
-                                            // put
-                                            result += normalize(toHexString(printed.length()),2)
-                                                    + normalize(toHexString(starting_address + 1),3) + "321\n";
-                                            // put byte
-                                            String[] strings = split(printed,3);
-                                            String argument;
-                                            for (int k = 0; k < strings.length; k++) {
-                                                argument = "";
-                                                for (Character c : strings[k].toCharArray()) {
-                                                    argument = toHexString(c) + argument;
-                                                    locals++;
-                                                }
-                                                result += normalize(argument, 6) + "20\n";
-                                            }
-                                            // print get
-                                            result += normalize(toHexString(starting_address),6) + "02\n";
-                                            break;
-                                        case NUMBER:
-                                            // set address TODO remove
-                                            starting_address = locals;
-                                            result += normalize(toHexString(starting_address),6) + "03\n";
-                                            // put
-                                            result += normalize(toHexString(parseInt(peek.value)),5) + "021\n";
-                                            locals++;
-                                            // print get
-                                            result += normalize(toHexString(starting_address),6) + "02\n";
-                                            break;
-                                        case REFERENCE:
-                                            // call reference
-                                            result += normalize(toHexString(variables.get(peek.value)),6) + "31\n";
-                                            break;
-                                        default:
-                                            Error.exit(Error.SYNTAX,"illegal typed arguments");
-                                    }
-                                } else {
-                                    Error.exit(Error.SYNTAX,"too many arguments");
-                                }
+                                builder.append("00000013\n");
+                                break;
+                            case "max":
+                                builder.append("00000014\n");
+                                break;
+                            case "min":
+                                builder.append("00000015\n");
                                 break;
                             case "let":
-                                LexicalUnit peek = q.poll();
-                                final String variable_name = peek.value.substring(1);
-                                if (variables.containsKey(variable_name)) {
-                                    // set address TODO remove
-                                    starting_address = variables.get(variable_name);
-                                    result += normalize(toHexString(starting_address), 6) + "03\n";
-                                } else {
-                                    // set address TODO remove
-                                    starting_address = locals;
-                                    result += normalize(toHexString(starting_address), 6) + "03\n";
-                                }
-                                // put
-                                variables.put(variable_name, starting_address);
-                                peek = q.poll();
-                                switch (peek.token) {
-                                    case NUMBER:
-                                        result += normalize(toHexString(parseInt(peek.value)), 6) + "30\n";
-                                        break;
-                                    case REFERENCE:
-                                        result += normalize(toHexString(variables.get(peek.value)), 6) + "32\n";
-                                        break;
-                                }
-                                locals++;
+                                builder.append("00000016\n");
                                 break;
-                            case "array": // TODO implement node which has value to return
-                                // set address TODO remove
-                                starting_address = locals;
-                                result += normalize(toHexString(starting_address), 6) + "03\n";
-                                // put
-                                result += normalize(toHexString(q.size()), 2)
-                                        + normalize(toHexString(starting_address + 1), 3) + "121\n";
-                                for (LexicalUnit argument : q) {
-                                    switch (argument.token) {
-                                        case NUMBER:
-                                            // put
-                                            result += normalize(toHexString(parseInt(argument.value)),6) + "21\n";
-                                            locals++;
-                                            break;
-                                        default:
-                                            Error.exit(Error.SYNTAX,"illegal typed arguments");
-                                    }
-                                }
+                            case "call":
+                                builder.append("00000017\n");
                                 break;
-                            default:
-                                status = ParserStatus.handling_error;
-                                server.handle(status);
-                                status = ParserStatus.rejected;
-                                Error.exit(Error.NOT_FOUND, "function, " + unit.value + " is not found");
                         }
-                        require(new Token[]{Token.LINE_NEXT,Token.LEFT_BRACKET,Token.END});
-                        break;
-                    case LINE_NEXT:
-                        require(new Token[]{Token.LEFT_BRACKET});
+                        if (function_stack.isEmpty()) require(new Token[]{Token.LEFT_PARENTHESIS,Token.END});
+                        else require(new Token[]{Token.NUMBER,Token.LITERAL,Token.RIGHT_PARENTHESIS});
                         break;
                     case END:
                         status = ParserStatus.accepted;
-                        return result;
+                        return builder.toString();
                     default:
                         Error.exit(Error.SYNTAX,"illegal syntax");
                 }
@@ -190,24 +134,24 @@ public class LLParser implements Parser {
     }
     private Queue<LexicalUnit> arguments(final LexicalUnit[] input) {
         Queue<LexicalUnit> q = new ArrayDeque<>();
-        for (int i = 0; i <  input.length; i++) {
-            switch (input[i].token) {
+        for (LexicalUnit unit : input) {
+            switch (unit.token) {
                 case NUMBER:
                 case LITERAL:
                 case VARIABLE:
-                    q.add(input[i]);
+                    q.add(unit);
                     break;
                 case FUNCTION:
-                    if (variables.containsKey(input[i].value)) {
-                        q.add(new LexicalUnit(Token.REFERENCE,input[i].value));
+                    if (variable_map.containsKey(unit.value)) {
+                        q.add(new LexicalUnit(Token.REFERENCE,unit.value));
                     } else {
-                        Error.exit(Error.NOT_FOUND,"function, " + input[i].value + " is not found");
+                        Error.exit(Error.NOT_FOUND,"function, " + unit.value + " is not found");
                     }
                     break;
-                case LEFT_BRACKET:
+                case LEFT_PARENTHESIS:
                     // parse(Arrays.copyOfRange(input,i,input.length));
                     break;
-                case RIGHT_BRACKET:
+                case RIGHT_PARENTHESIS:
                     return q;
                 default:
                     Error.exit(Error.SYNTAX,"illegal arguments");
@@ -215,17 +159,18 @@ public class LLParser implements Parser {
         }
         return null;
     }
-    private String normalize(String original,final int offset){
+    private String normalize(final String original,final int offset){
         final int length = original.length();
+        final StringBuilder builder = new StringBuilder(offset - length);
         if (length > offset) {
             Error.exit(Error.VM, "illegal address");
         }
         for (int k = 0; k < offset - length; k++) {
-            original = "0" + original;
+            builder.append('0');
         }
-        return original;
+        return builder.append(original).toString();
     }
-    private String[] split(String input,final int offset){
+    private String[] split(String input){
         String[] result = new String[input.length()/3 + 1];
         int i = 0;
         while (input.length() >= 3){

@@ -2,14 +2,18 @@ package s_expression_compiler;
 
 public enum Token {
     // String
+    // TRUE("true"),
+    // FALSE("false"),
     END(";"),
-    // ADD("+"),
+    ADD("+"),
     // SUBTRACT("-"),
-    // MULTIPLY("*"),
+    MULTIPLY("*"),
     // DIVIDE("/"),
     // EQUAL("="),
-    LEFT_BRACKET("("),
-    RIGHT_BRACKET(")"),
+    LEFT_PARENTHESIS("("),
+    RIGHT_PARENTHESIS(")"),
+    // LEFT_BRACKET("["),
+    // RIGHT_BRACKET("]"),
     LINE_NEXT("\n"),
     // RegExp
     FUNCTION("[a-zA-Z_]+"),

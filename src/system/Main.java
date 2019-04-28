@@ -7,7 +7,7 @@ import java.io.IOException;
 
 public class Main{
     public static void main(String[] args) throws IOException{
-        String file_name = "Variable";
+        String file_name = "Nest";
         compiler(file_name);
         runtime(file_name);
     }

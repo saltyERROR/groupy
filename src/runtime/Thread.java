@@ -2,6 +2,7 @@ package runtime;
 
 import java.util.EmptyStackException;
 import java.util.Stack;
+import static java.lang.Math.*;
 
 public class Thread {
     Thread(final int[] heap_area,final GarbageCollector garbage_collector){
@@ -39,31 +40,61 @@ public class Thread {
                             System.out.print(runtime_stack.peek() >>> 4);
                             break;
                         case 0x1: // int[]
-                            String int_array = "";
+                            StringBuilder int_array = new StringBuilder();
                             for (int i = values(1); i < values(1) + values(2); i++) {
-                                int_array += heap_area[i];
+                                int_array.append(heap_area[i]);
                             }
-                            System.out.print(int_array);
+                            System.out.print(int_array.toString());
                             break;
                         case 0x2: // char
                             System.out.print((char) (runtime_stack.peek() >>> 4));
                             break;
                         case 0x3: // char[]
-                            String char_array = "";
+                            StringBuilder char_array = new StringBuilder();
                             for (int i = values(1); i < values(1) + values(2); i++) {
-                                char_array += (char) heap_area[i];
+                                char_array.append((char)heap_area[i]);
                             }
-                            System.out.print(char_array);
+                            System.out.print(char_array.toString());
                             break;
                         default:
                             System.exit(1);
                             break;
                     }
+                    break;
                 case 0x03: // set address
+                    runtime_stack.pop();
                     address_resister = runtime_stack.pop() >>> 8;
                     break;
-                case 0x10: // push add
-                    runtime_stack.push(args(0) + args(1));
+                case 0x10: // push
+                    runtime_stack.push(runtime_stack.pop() >>> 8);
+                    break;
+                case 0x11: // add
+                    runtime_stack.pop();
+                    runtime_stack.push(runtime_stack.pop() + runtime_stack.pop());
+                    break;
+                case 0x12: // multiply
+                    runtime_stack.pop();
+                    runtime_stack.push(runtime_stack.pop() * runtime_stack.pop());
+                    break;
+                case 0x13: // print
+                    runtime_stack.pop();
+                    System.out.print(runtime_stack.pop());
+                    break;
+                case 0x14: // max
+                    runtime_stack.pop();
+                    runtime_stack.push(max(runtime_stack.pop(),runtime_stack.pop()));
+                    break;
+                case 0x15: // min
+                    runtime_stack.pop();
+                    runtime_stack.push(min(runtime_stack.pop(),runtime_stack.pop()));
+                    break;
+                case 0x16: // let
+                    runtime_stack.pop();
+                    heap_area[runtime_stack.pop()] = runtime_stack.pop();
+                    break;
+                case 0x17: // call
+                    runtime_stack.pop();
+                    runtime_stack.push(heap_area[runtime_stack.pop()]);
                     break;
                 case 0x20: // put byte
                     for (int i = 0; i < 3; i++) {
@@ -89,13 +120,19 @@ public class Thread {
                 default:
                     break;
             }
-            // garbage_collector.collect();
+            garbage_collector.collect();
         }
     }
     private int args(final int counter){
         if (counter == 0) return (runtime_stack.peek() >>> 8) & 0xff;
         else if (counter == 1) return (runtime_stack.peek() >>> 16) & 0xff;
         else if (counter == 2) return runtime_stack.peek() >>> 24;
+        else System.exit(1);
+        return -1;
+    }
+    private int args2(final int counter){
+        if (counter == 0) return (runtime_stack.peek() >>> 8) & 0xfff;
+        else if (counter == 1) return (runtime_stack.peek() >>> 20) & 0xfff;
         else System.exit(1);
         return -1;
     }
